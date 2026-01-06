@@ -1,94 +1,99 @@
+HKCU\Software\Microsoft\Windows\CurrentVersion\Run
 @echo off
-title !!! SYSTEM BREACH !!!
+setlocal EnableDelayedExpansion
+title SYSTEM FAILURE
 color 0a
 mode con cols=120 lines=40
 
-:: ======================
-:: DŹWIĘK START
-:: ======================
-powershell -c "[console]::beep(800,200)"
-powershell -c "[console]::beep(1000,200)"
+:: =========================
+:: START ALARM
+:: =========================
+powershell -c "[console]::beep(900,300);[console]::beep(500,500)"
 
-echo Initializing exploit framework...
-ping localhost -n 2 >nul
+:: =========================
+:: LOOP PANIC – SAMOZAMYKAJĄCE OKNA
+:: =========================
+for /L %%i in (1,1,8) do (
+  start powershell -WindowStyle Hidden -c ^
+  "Add-Type -AssemblyName PresentationFramework;
+   $w = New-Object System.Windows.Window;
+   $w.WindowStyle='None';
+   $w.WindowState='Maximized';
+   $w.Background='Black';
+   $t = New-Object System.Windows.Controls.TextBlock;
+   $t.Text='CRITICAL ERROR 0x0%%i`nMEMORY CORRUPTION DETECTED';
+   $t.Foreground='Red';
+   $t.FontSize=48;
+   $t.HorizontalAlignment='Center';
+   $t.VerticalAlignment='Center';
+   $w.Content=$t;
+   $w.Show();
+   Start-Sleep -Milliseconds 700;
+   $w.Close();"
+)
 
-echo Establishing encrypted tunnel...
-ping localhost -n 2 >nul
+:: =========================
+:: GLITCH AUDIO LOOP
+:: =========================
+powershell -c "1..10 | %% { [console]::beep((Get-Random -Min 200 -Max 1200),80) }"
 
-:: ======================
-:: MATRIX MODE
-:: ======================
+:: =========================
+:: MATRIX / ERROR SPAM
+:: =========================
 cls
 color 0a
-echo ENTERING MATRIX MODE...
-timeout /t 2 >nul
-
-for /L %%i in (1,1,80) do (
-  setlocal EnableDelayedExpansion
+for /L %%i in (1,1,40) do (
   set "line="
-  for /L %%j in (1,1,60) do (
+  for /L %%j in (1,1,70) do (
     set /a r=!random! %% 10
     set "line=!line!!r!"
   )
   echo !line!
-  powershell -c "[console]::beep(1200,30)"
-  endlocal
 )
 
-:: ======================
-:: FAKE USUWANIE SYSTEMU
-:: ======================
-cls
-color 0c
-echo WARNING: SYSTEM DESTRUCTION IN PROGRESS
-powershell -c "[console]::beep(400,700)"
-timeout /t 2 >nul
+:: =========================
+:: FAKE BSOD – PEŁNY EKRAN
+:: =========================
+powershell -WindowStyle Hidden -c ^
+"Add-Type -AssemblyName PresentationFramework;
+Add-Type -AssemblyName System.Windows.Forms;
+$form = New-Object System.Windows.Forms.Form;
+$form.BackColor = 'Blue';
+$form.WindowState = 'Maximized';
+$form.FormBorderStyle = 'None';
+$form.TopMost = $true;
 
-echo Deleting C:\Windows\System32
-echo del /f /s /q C:\Windows\System32\*.*
-ping localhost -n 2 >nul
+$label = New-Object System.Windows.Forms.Label;
+$label.ForeColor = 'White';
+$label.Font = New-Object System.Drawing.Font('Consolas',24);
+$label.Text = ':(`n`nYour PC ran into a problem and needs to restart.`nWe''re just collecting some error info...`n`nSTOP CODE: CRITICAL_PROCESS_DIED';
+$label.AutoSize = $true;
+$label.Location = New-Object System.Drawing.Point(100,100);
 
-echo Removing boot sector...
-echo format C: /fs:NTFS
-ping localhost -n 2 >nul
+$form.Controls.Add($label);
+$form.Show();
 
-echo Overwriting kernel memory...
-ping localhost -n 2 >nul
+1..15 | %% {
+  [console]::beep(300,120);
+  Start-Sleep -Seconds 1
+}
 
-echo SYSTEM FILES REMOVED
-powershell -c "[console]::beep(300,800)"
+$form.Close();"
 
-:: ======================
-:: EKSTREMALNE EFEKTY
-:: ======================
-cls
-for %%c in (0a 0c 0b 0d 0e 0f) do (
-  color %%c
-  echo ██████████████████████████████████████████████
-  echo █ SYSTEM FAILURE ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ █
-  echo █ MEMORY CORRUPTION DETECTED █
-  echo ██████████████████████████████████████████████
-  powershell -c "[console]::beep(1000,100)"
+:: =========================
+:: KOŃCOWY PANIC LOOP
+:: =========================
+for /L %%i in (1,1,5) do (
+  start powershell -c "Add-Type -AssemblyName PresentationFramework;[System.Windows.MessageBox]::Show('SYSTEM FAILURE','ERROR','OK','Error')"
   timeout /t 1 >nul
 )
 
-:: ======================
-:: FAKE PANIC MODE
-:: ======================
-cls
-color 4f
-echo CRITICAL ERROR
-echo SYSTEM WILL SHUT DOWN
-powershell -c "[console]::beep(200,1000)"
-timeout /t 3 >nul
-
-:: ======================
-:: WYŁĄCZENIE
-:: ======================
-color 0c
+:: =========================
+:: OPCJONALNY SHUTDOWN
+:: =========================
 echo.
-echo COMPUTER WILL SHUT DOWN IN 15 SECONDS
+echo SYSTEM WILL SHUT DOWN IN 20 SECONDS
 echo CANCEL: shutdown /a
-ping localhost -n 15 >nul
+ping localhost -n 20 >nul
 
 shutdown /s /t 0
