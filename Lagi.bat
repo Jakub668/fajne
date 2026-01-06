@@ -76,7 +76,9 @@ for %%c in (0c 0a 0d 0e 4f) do (
   powershell -c "[console]::beep(1000,100)"
   timeout /t 1 >nul
 )
+goto start
 
+:start2
 :: =========================
 :: DEMO FILE ENCRYPTION (.mm)
 :: BEZPIECZNE – TYLKO FOLDER TESTOWY
@@ -150,4 +152,4 @@ echo %MAX_FILES% FILES CREATED AND ENCRYPTED (.mm)
 echo Location:
 echo %DEMO%
 timeout /t 3 >nul
-goto start
+goto start2
