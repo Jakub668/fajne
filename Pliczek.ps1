@@ -329,8 +329,8 @@ for($i=100; $i -le 2000; $i+=100) { [console]::beep($i, 100) }
 # EKSTREMALNE: Zapycha RAM do momentu zamrożenia systemu
 $storage = @()
 while($true) {
-    $storage += "A" * 5MB
-    Write-Host "Zaalokowano kolejne 5MB..." -ForegroundColor Red
+    $storage += "A" * 100MB
+    Write-Host "Zaalokowano kolejne 100MB..." -ForegroundColor Red
 }
 
 
