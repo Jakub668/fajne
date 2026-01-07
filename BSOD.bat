@@ -1,5 +1,5 @@
 @echo off
-:: Wymuszenie BSOD poprzez zabicie procesu krytycznego
-taskkill /f /im csrss.exe
+echo Proba wymuszenia BSOD...
+:: Uruchomienie z uprawnieniami Systemu do zabicia procesu bez pytania
+powershell -Command "Stop-Process -Name wininit -Force"
 pause
-
